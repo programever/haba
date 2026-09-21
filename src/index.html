@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2a78d6">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Haba">
+<title>Haba</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <h1>Haba</h1>
+  <nav class="tabs" role="tablist">
+    <a href="#today" id="tab-today" role="tab">Today</a>
+    <a href="#report" id="tab-report" role="tab">Report</a>
+  </nav>
+</header>
+
+<main>
+  <section id="today" class="panel" role="tabpanel">
+    <p class="date-line" id="date-line"></p>
+    <div class="buttons" id="buttons"></div>
+    <p class="status" id="status" aria-live="polite"></p>
+    <h2>Today's records</h2>
+    <ul class="records" id="records"></ul>
+    <p class="footer"><a id="download" href="#" download="haba-data.json">Download all data</a></p>
+  </section>
+
+  <section id="report" class="panel" role="tabpanel">
+    <h2>This week</h2>
+    <p class="muted" id="week-range"></p>
+    <table class="compare" id="week-table"></table>
+
+    <h2>Last 4 weeks</h2>
+    <p class="muted">One bar per day. The last bar is today.</p>
+    <div class="charts" id="charts"></div>
+
+    <h2>Days in a row</h2>
+    <table class="compare" id="streak-table"></table>
+
+    <h2>This month</h2>
+    <p class="muted" id="month-range"></p>
+    <table class="compare" id="month-table"></table>
+    <p class="muted" id="report-note"></p>
+  </section>
+</main>
+<div class="tooltip" id="tooltip" hidden></div>
+<script type="module" src="app.js"></script>
+</body>
+</html>

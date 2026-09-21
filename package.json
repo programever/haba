@@ -1,0 +1,21 @@
+{
+  "name": "haba",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Haba: two-tab habit page: buttons and report. Records live in Firestore.",
+  "type": "module",
+  "scripts": {
+    "check": "tsc --noEmit",
+    "test": "npm run check && node --test test/report.test.ts",
+    "build": "node build.mjs",
+    "test:browser": "node --test test/browser.test.ts",
+    "serve": "python3 -m http.server 8765 --bind 127.0.0.1 --directory dist"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "esbuild": "^0.25.0",
+    "firebase": "^12.19.0",
+    "playwright": "^1.50.0",
+    "typescript": "^5.9.0"
+  }
+}
