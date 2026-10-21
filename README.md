@@ -1,7 +1,7 @@
 # Haba
 
 A small website with two tabs. Tab one has thirteen big buttons: press one and it
-records that item for today. Tab two shows the report: this week against last
+marks that item as done for today. Press it again to take the mark away. Tab two shows the report: this week against last
 week, one small graph per item for the last four weeks, days in a row, and this
 month against last month.
 
@@ -104,7 +104,8 @@ force-pushed. That is fine here: the repo is small and only Alpha writes to it.
 
 ## Rules of the counting
 
-- One press is one time. There are no minutes or amounts.
+- Each item can be marked once per day, not more. A press makes the mark, a
+  second press on the same button removes it. There are no minutes or amounts.
 - A day starts at 04:00, not at midnight. A press at 01:00 counts for the
   evening before.
 - Weeks start on Monday.

@@ -7,8 +7,9 @@ import assert from 'node:assert/strict';
 import { spawn, type ChildProcess } from 'node:child_process';
 import { chromium, type Page } from 'playwright';
 
-const count = (page: Page, item: string): Promise<number> =>
-  page.locator(`.hb[data-item="${item}"] .n`).innerText().then(Number);
+// Since 2026-10-21 a button is a once-per-day mark: the badge shows a check mark when done, nothing when not.
+const done = (page: Page, item: string): Promise<boolean> =>
+  page.locator(`.hb[data-item="${item}"] .n`).innerText().then(t => t.trim() !== '');
 
 test('the page saves, shows and removes records', async () => {
   let url = process.env['HABITS_URL'];
@@ -30,39 +31,39 @@ test('the page saves, shows and removes records', async () => {
     await page.waitForSelector('.hb');
     await page.waitForFunction(() => !document.querySelector('#records')!.textContent!.includes('Loading'), null, { timeout: 20000 });
     assert.equal(await page.locator('.hb').count(), 13, '13 buttons');
-    const jog0 = await count(page, 'jog'), spend0 = await count(page, 'spend');
+    // The test must not touch a real mark of today, so it only runs when jog and spend are still empty.
+    assert.equal(await done(page, 'jog'), false, 'jog is not marked yet today (else the test would remove the real mark)');
+    assert.equal(await done(page, 'spend'), false, 'spend is not marked yet today');
 
-    // press jog once, spend twice
+    // press jog once, spend twice: the second press on spend takes the mark away again
     await page.click('.hb[data-item="jog"]');
     await page.click('.hb[data-item="spend"]');
+    await page.waitForFunction(() => document.querySelector('.hb[data-item="spend"] .n')!.textContent!.trim() !== '');
     await page.click('.hb[data-item="spend"]');
-    await page.waitForFunction(([j, s]) => Number(document.querySelector('.hb[data-item="jog"] .n')!.textContent) === j! + 1
-      && Number(document.querySelector('.hb[data-item="spend"] .n')!.textContent) === s! + 2, [jog0, spend0]);
+    await page.waitForFunction(() => document.querySelector('.hb[data-item="jog"] .n')!.textContent!.trim() !== ''
+      && document.querySelector('.hb[data-item="spend"] .n')!.textContent!.trim() === '');
     await page.waitForFunction(() => !document.querySelector('#records')!.textContent!.includes('not saved yet'), null, { timeout: 20000 });
+    assert.equal(await page.locator('#records li').count(), 1, 'only one record today: jog');
 
     // a second tab sees the same data
     const page2 = await ctx.newPage();
     await page2.goto(url);
     await page2.waitForSelector('.hb');
-    await page2.waitForFunction(([j]) => Number(document.querySelector('.hb[data-item="jog"] .n')!.textContent) === j! + 1, [jog0], { timeout: 20000 });
+    await page2.waitForFunction(() => document.querySelector('.hb[data-item="jog"] .n')!.textContent!.trim() !== '', null, { timeout: 20000 });
     await page2.close();
 
     await page.screenshot({ path: '/tmp/habits-today.png', fullPage: true });
     await page.click('#tab-report');
     await page.waitForTimeout(300);
     assert.ok(await page.locator('#report').isVisible(), 'report visible');
-    assert.equal(await page.locator('.chart').count(), 10, '10 charts');
+    assert.equal(await page.locator('.chart').count(), 13, '13 charts');
     await page.screenshot({ path: '/tmp/habits-report.png', fullPage: true });
     await page.click('#tab-today');
     await page.waitForTimeout(200);
 
-    // remove the three test records (the newest three lines in the list)
-    for (let i = 0; i < 3; i++) {
-      await page.locator('#records button.x').first().click();
-      await page.waitForTimeout(400);
-    }
-    await page.waitForFunction(([j, s]) => Number(document.querySelector('.hb[data-item="jog"] .n')!.textContent) === j
-      && Number(document.querySelector('.hb[data-item="spend"] .n')!.textContent) === s, [jog0, spend0], { timeout: 20000 });
+    // remove the test record with the × button in the list
+    await page.locator('#records button.x').first().click();
+    await page.waitForFunction(() => document.querySelector('.hb[data-item="jog"] .n')!.textContent!.trim() === '', null, { timeout: 20000 });
 
     assert.deepEqual(errors, [], 'no page errors');
   } finally {

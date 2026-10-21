@@ -38,8 +38,17 @@ const state = {
 };
 
 // ---------- actions ----------
+// Each item can be marked once per day (Iker, 2026-10-21). Pressing a marked item removes today's mark again.
+// `saving` holds items whose first press is on its way, so a fast double tap cannot make two records.
+const saving = new Set<R.ItemId>();
+
 function press(item: R.ItemId): void {
-  addDoc(records, { t: R.isoLocal(new Date()), item }).catch((e: Error) => setStatus('Could not save: ' + e.message, true));
+  const done = R.recordsOfDay(state.records, R.today()).filter(r => r.item === item);
+  if (done.length) { for (const r of done) remove(r.id); return; }
+  if (saving.has(item)) return;
+  saving.add(item);
+  addDoc(records, { t: R.isoLocal(new Date()), item })
+    .catch((e: Error) => { saving.delete(item); setStatus('Could not save: ' + e.message, true); });
 }
 function remove(id: string): void {
   deleteDoc(doc(db, COLLECTION, id)).catch((e: Error) => setStatus('Could not remove: ' + e.message, true));
@@ -83,9 +92,9 @@ function render(): void {
   for (const it of R.ITEMS) {
     if (lastGroup && it.group !== lastGroup) html += '<div class="divider"></div>';
     lastGroup = it.group;
-    const n = byDay[it.id][todayKey] ?? 0;
-    html += `<button class="hb ${it.group}" data-item="${it.id}" aria-label="${esc(it.label)}, ${n} today">` +
-      `<span>${esc(it.short ?? it.label)}</span><span class="n${n ? ' has' : ''}">${n}</span></button>`;
+    const done = (byDay[it.id][todayKey] ?? 0) > 0;
+    html += `<button class="hb ${it.group}" data-item="${it.id}" aria-pressed="${done}" aria-label="${esc(it.label)}, ${done ? 'done today' : 'not yet today'}">` +
+      `<span>${esc(it.short ?? it.label)}</span><span class="n${done ? ' has' : ''}">${done ? '✓' : ''}</span></button>`;
   }
   $('buttons').innerHTML = html;
 
@@ -173,6 +182,7 @@ function onData(snap: QuerySnapshot<DocumentData>): void {
     return { id: d.id, t: String(v['t'] ?? ''), item: String(v['item'] ?? ''), pending: d.metadata.hasPendingWrites };
   });
   state.loaded = true;
+  saving.clear();
   const waiting = state.records.filter(r => r.pending).length;
   if (waiting && !navigator.onLine) setStatus(`Offline. ${waiting} press${waiting === 1 ? '' : 'es'} kept on this phone, sent later.`, true);
   else if (waiting) setStatus('Saving…');
