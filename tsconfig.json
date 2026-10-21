@@ -14,5 +14,5 @@
     "noEmit": true,
     "types": ["node"]
   },
-  "include": ["src/**/*.ts", "test/**/*.ts", "build.mjs"]
+  "include": ["src/**/*.ts", "shared/**/*.ts", "test/**/*.ts", "build.mjs"]
 }

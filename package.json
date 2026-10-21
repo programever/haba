@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "check": "tsc --noEmit",
-    "test": "npm run check && node --test test/report.test.ts",
+    "test": "npm run check && node --test test/report.test.ts test/haba-mark.test.ts",
     "build": "node build.mjs",
     "test:browser": "node --test test/browser.test.ts",
     "serve": "python3 -m http.server 8765 --bind 127.0.0.1 --directory dist"

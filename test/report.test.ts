@@ -68,7 +68,7 @@ test('daily series', () => {
 test('days in a row', () => {
   const st = R.streaks(recs, now);
   assert.deepEqual(st.find(r => r.id === 'jog'), { id: 'jog', label: 'Jogging', days: 4, todayDone: true }, '20 to 23 Sep');
-  assert.deepEqual(st.find(r => r.id === 'read'), { id: 'read', label: 'Read book', days: 1, todayDone: false }, 'yesterday only');
+  assert.deepEqual(st.find(r => r.id === 'read'), { id: 'read', label: 'Read', days: 1, todayDone: false }, 'yesterday only');
   assert.equal(st.find(r => r.id === 'core')!.days, 0);
 });
 

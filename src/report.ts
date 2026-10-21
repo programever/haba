@@ -21,7 +21,7 @@ export type DayKey = string;
 export const ITEMS: readonly Item[] = [
   { id: 'core',     label: 'Core training', group: 'good' },
   { id: 'jog',      label: 'Jogging',       group: 'good' },
-  { id: 'read',     label: 'Read book',     group: 'good' },
+  { id: 'read',     label: 'Read',          group: 'good' },
   { id: 'meditate', label: 'Meditate',      group: 'good' },
   { id: 'kid',      label: 'Kid time',      group: 'good' },
   { id: 'wife',     label: 'Wife time',     group: 'good' },

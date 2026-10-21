@@ -65,6 +65,16 @@ service cloud.firestore {
 In plain words: anyone can read, anyone can add a record that has the right
 shape, anyone can delete, nobody can change a record after it is written.
 
+## Marks from other apps
+
+Since 2026-10-21 some other apps of Alpha mark Haba by themselves. Medi marks
+Meditate after a full session. Cismo marks Problem when Iker presses "I smoked".
+Trani marks Jogging and/or Core when a training day is marked done, and removes
+them when "done" is taken away. DeViDa and Rebo mark Read after 3 minutes on
+the page. They all follow the same rule as the buttons: once per day, and the
+day starts at 04:00. The shared code and the full table are in `shared/`.
+They write the same `{t, item}` record as the buttons, so the rules do not change.
+
 ## Files
 
 | File | What it is |
