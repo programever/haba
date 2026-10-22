@@ -34,11 +34,11 @@ service cloud.firestore {
     }
     match /trani/{day} {
       allow read: if true;
-      allow create: if day.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
-        && request.resource.data.keys().hasOnly(['day'])
-        && request.resource.data.day == day;
+      allow create, update: if day.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+        && request.resource.data.keys().hasOnly(['day', 'feel'])
+        && request.resource.data.day == day
+        && (!('feel' in request.resource.data) || request.resource.data.feel in ['easy', 'ok', 'hard', 'cramp']);
       allow delete: if true;
-      allow update: if false;
     }
     match /cismo/{key}/events/{id} {
       allow read, delete: if key.size() >= 20;
