@@ -1,4 +1,4 @@
-// Haba page. Two tabs: Today (buttons) and Report.
+// Haba page. Three tabs: Today (buttons), Calendar (one month, one box per day) and Report.
 // Every press is one small document in a Firestore database (Google).
 // Firestore keeps a copy on the phone, so presses made offline are sent later.
 // The config block below is public by design; the Firestore rules protect the data.
@@ -35,6 +35,9 @@ const records = collection(db, COLLECTION);
 const state = {
   records: [] as LiveRec[],
   loaded: false,
+  // calendar tab: the month on show and the day whose list is open (null: none picked)
+  calMonth: R.monthOf(R.today()) as R.MonthKey,
+  calDay: R.today() as R.DayKey | null,
 };
 
 // ---------- actions ----------
@@ -79,6 +82,10 @@ function niceDay(key: R.DayKey, withYear = false): string {
 }
 function shortDay(key: R.DayKey): string { return dateOf(key).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }); }
 function labelOf(item: string): string { return R.ITEMS.find(x => x.id === item)?.label ?? item; }
+function itemOf(id: R.ItemId): R.Item { return R.ITEMS.find(x => x.id === id) ?? { id, label: id, group: 'good' }; }
+function monthName(m: R.MonthKey): string {
+  return dateOf(m + '-01').toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+}
 
 function render(): void {
   const recs = state.records;
@@ -109,7 +116,44 @@ function render(): void {
   const plain: R.Rec[] = recs.map(r => ({ t: r.t, item: r.item }));
   ($('download') as HTMLAnchorElement).href = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(plain, null, 2));
 
+  renderCalendar(recs);
   renderReport(recs);
+}
+
+// One month, Monday first. A box shows the day number, the mood face and one dot per marked item.
+function renderCalendar(recs: readonly R.Rec[]): void {
+  const todayKey = R.today();
+  const g = R.monthGrid(recs, state.calMonth);
+  $('cal-title').textContent = monthName(state.calMonth);
+  ($('cal-next') as HTMLButtonElement).disabled = state.calMonth >= R.monthOf(todayKey);
+
+  let html = '<div class="cal-head">' + ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(d => `<span>${d}</span>`).join('') + '</div>';
+  for (const week of g.weeks) {
+    html += '<div class="cal-week">';
+    for (const c of week) {
+      if (!c.inMonth) { html += '<span class="cal-day out"></span>'; continue; }
+      const cls = ['cal-day', c.key === todayKey ? 'today' : '', c.key > todayKey ? 'future' : '', c.key === state.calDay ? 'sel' : ''].filter(Boolean).join(' ');
+      const names = [...(c.mood ? [labelOf(c.mood)] : []), ...c.items.map(labelOf)];
+      const dots = c.items.map(id => `<i class="d ${itemOf(id).group}"></i>`).join('');
+      const face = c.mood ? esc(itemOf(c.mood).short ?? '') : '';
+      html += `<button class="${cls}" data-day="${c.key}" aria-label="${esc(niceDay(c.key))}: ${names.length ? esc(names.join(', ')) : 'nothing'}">` +
+        `<span class="num">${c.day}</span><span class="face">${face}</span><span class="dots">${dots}</span></button>`;
+    }
+    html += '</div>';
+  }
+  $('cal-grid').innerHTML = html;
+
+  const day = state.calDay;
+  if (!day || R.monthOf(day) !== state.calMonth) {
+    $('cal-day-title').textContent = 'Pick a day';
+    $('cal-records').innerHTML = '';
+    return;
+  }
+  $('cal-day-title').textContent = niceDay(day, true);
+  const list = R.recordsOfDay(recs, day).sort((a, b) => (a.t < b.t ? -1 : 1));
+  $('cal-records').innerHTML = list.length
+    ? list.map(r => `<li><span class="t">${r.t.slice(11, 16)}</span><span class="l">${esc(labelOf(r.item))}</span></li>`).join('')
+    : `<li class="empty">${state.loaded ? 'Nothing on this day.' : 'Loading…'}</li>`;
 }
 
 function renderReport(recs: readonly R.Rec[]): void {
@@ -167,8 +211,8 @@ function chart(row: R.SeriesRow, days: readonly R.DayKey[]): string {
 
 // ---------- tabs ----------
 function showTab(): void {
-  const name = location.hash === '#report' ? 'report' : 'today';
-  for (const t of ['today', 'report']) {
+  const name = location.hash === '#report' ? 'report' : location.hash === '#calendar' ? 'calendar' : 'today';
+  for (const t of ['today', 'calendar', 'report']) {
     $(t).classList.toggle('active', t === name);
     $('tab-' + t).classList.toggle('active', t === name);
     $('tab-' + t).setAttribute('aria-selected', t === name ? 'true' : 'false');
@@ -213,6 +257,15 @@ function init(): void {
     const b = (e.target as Element).closest<HTMLButtonElement>('button.x');
     const id = b?.dataset['id'];
     if (id) remove(id);
+  });
+
+  // calendar: month before / after, and tap a day
+  $('cal-prev').addEventListener('click', () => { state.calMonth = R.addMonths(state.calMonth, -1); render(); });
+  $('cal-next').addEventListener('click', () => { state.calMonth = R.addMonths(state.calMonth, 1); render(); });
+  $('cal-grid').addEventListener('click', e => {
+    const b = (e.target as Element).closest<HTMLButtonElement>('button[data-day]');
+    const day = b?.dataset['day'];
+    if (day) { state.calDay = day; render(); }
   });
 
   // tooltips on the chart bars

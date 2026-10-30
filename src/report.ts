@@ -181,3 +181,41 @@ export function isoLocal(d: Date): string {
   return ymd(d) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds())
     + sign + pad(Math.floor(a / 60)) + ':' + pad(a % 60);
 }
+
+// ---------- calendar ----------
+/** A month key looks like "2026-10". */
+export type MonthKey = string;
+
+export function monthOf(key: DayKey): MonthKey { return key.slice(0, 7); }
+
+/** Month key shifted by n months (n may be negative). */
+export function addMonths(m: MonthKey, n: number): MonthKey {
+  const [y, mo] = m.split('-').map(Number);
+  const d = new Date(y ?? 0, (mo ?? 1) - 1 + n, 1, 12, 0, 0);
+  return d.getFullYear() + '-' + pad(d.getMonth() + 1);
+}
+
+/** One box of the calendar. `items` are the marks of that day in ITEMS order, without the mood. `mood` is the face, if any. */
+export interface CalCell { key: DayKey; day: number; inMonth: boolean; items: ItemId[]; mood: ItemId | null }
+/** A month as rows of seven days, Monday first. Days before the 1st and after the last are padding (inMonth false). */
+export interface CalMonth { month: MonthKey; weeks: CalCell[][] }
+
+export function monthGrid(records: readonly Rec[], month: MonthKey): CalMonth {
+  const first = month + '-01';
+  const last = addDays(addMonths(month, 1) + '-01', -1);
+  const start = weekStart(first);
+  const end = addDays(weekStart(last), 6);
+  const byDay = countsByDay(records);
+  const weeks: CalCell[][] = [];
+  let week: CalCell[] = [];
+  for (const k of dayRange(start, end)) {
+    const marked = ITEMS.filter(it => (byDay[it.id][k] ?? 0) > 0);
+    week.push({
+      key: k, day: Number(k.slice(8)), inMonth: monthOf(k) === month,
+      items: marked.filter(it => it.group !== 'mood').map(it => it.id),
+      mood: marked.find(it => it.group === 'mood')?.id ?? null,
+    });
+    if (week.length === 7) { weeks.push(week); week = []; }
+  }
+  return { month, weeks };
+}

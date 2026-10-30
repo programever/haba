@@ -1,9 +1,11 @@
 # Haba
 
-A small website with two tabs. Tab one has thirteen big buttons: press one and it
-marks that item as done for today. Press it again to take the mark away. Tab two shows the report: this week against last
-week, one small graph per item for the last four weeks, days in a row, and this
-month against last month.
+A small website with three tabs. Tab one has thirteen big buttons: press one and it
+marks that item as done for today. Press it again to take the mark away. Tab two is a
+calendar: one month, one box per day, with the mood face and one coloured dot per marked
+item; tap a day to see its list, and use the arrows to go to earlier months. Tab three shows
+the report: this week against last week, one small graph per item for the last four weeks,
+days in a row, and this month against last month.
 
 The page is on GitHub Pages: https://programever.github.io/haba/
 
@@ -79,7 +81,7 @@ They write the same `{t, item}` record as the buttons, so the rules do not chang
 
 | File | What it is |
 |---|---|
-| `src/index.html` | The page. Both tabs. |
+| `src/index.html` | The page. All three tabs. |
 | `src/style.css` | The look. Light and dark mode. |
 | `src/report.ts` | The counting code. No browser things, so it can be tested with node. |
 | `src/app.ts` | The page logic: buttons, Firestore, drawing the report. |

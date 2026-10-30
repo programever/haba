@@ -83,3 +83,27 @@ test('isoLocal is 25 characters with an offset', () => {
   assert.equal(s.length, 25);
   assert.match(s, /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d[+-]\d\d:\d\d$/);
 });
+
+test('calendar month grid', () => {
+  assert.equal(R.monthOf('2026-10-30'), '2026-10');
+  assert.equal(R.addMonths('2026-10', 1), '2026-11');
+  assert.equal(R.addMonths('2026-01', -1), '2025-12');
+  assert.equal(R.addMonths('2026-12', 1), '2027-01');
+  const g = R.monthGrid(recs, '2026-09');
+  assert.equal(g.weeks.length, 5, 'Sep 2026 starts on a Tuesday and ends on a Wednesday: 5 rows');
+  assert.equal(g.weeks[0]?.[0]?.key, '2026-08-31', 'the first row starts on the Monday before the 1st');
+  assert.equal(g.weeks[0]?.[0]?.inMonth, false);
+  assert.equal(g.weeks[0]?.[1]?.day, 1);
+  assert.equal(g.weeks[4]?.[6]?.key, '2026-10-04', 'the last row ends on the Sunday after the 30th');
+  const wed = g.weeks[3]?.[2];
+  assert.equal(wed?.key, '2026-09-23');
+  assert.deepEqual(wed?.items, ['jog', 'spend'], 'items in button order, mood not included, the 01:30 spend counts for the 23rd');
+  const sun = g.weeks[2]?.[6];
+  assert.equal(sun?.key, '2026-09-20');
+  assert.deepEqual(sun?.items, ['jog']);
+  assert.equal(sun?.mood, null);
+  const withMood = R.monthGrid([...recs, { t: '2026-09-23T21:00:00+07:00', item: 'happy' }], '2026-09');
+  assert.equal(withMood.weeks[3]?.[2]?.mood, 'happy');
+  assert.deepEqual(withMood.weeks[3]?.[2]?.items, ['jog', 'spend'], 'the mood is a face, not a dot');
+  assert.equal(R.monthGrid([], '2027-02').weeks.length, 4, 'Feb 2027 starts on a Monday and has 28 days: four rows');
+});

@@ -18,6 +18,7 @@
   <h1>Haba</h1>
   <nav class="tabs" role="tablist">
     <a href="#today" id="tab-today" role="tab">Today</a>
+    <a href="#calendar" id="tab-calendar" role="tab">Calendar</a>
     <a href="#report" id="tab-report" role="tab">Report</a>
   </nav>
 </header>
@@ -30,6 +31,18 @@
     <h2>Today's records</h2>
     <ul class="records" id="records"></ul>
     <p class="footer"><a id="download" href="#" download="haba-data.json">Download all data</a></p>
+  </section>
+
+  <section id="calendar" class="panel" role="tabpanel">
+    <div class="cal-nav">
+      <button id="cal-prev" aria-label="Month before">‹</button>
+      <b id="cal-title"></b>
+      <button id="cal-next" aria-label="Month after">›</button>
+    </div>
+    <div class="cal" id="cal-grid"></div>
+    <p class="muted">The face is the mood of the day. Blue dots are good habits, green dots are spend and drink, orange dots are work and problem. Tap a day to see its list.</p>
+    <h2 id="cal-day-title">Pick a day</h2>
+    <ul class="records" id="cal-records"></ul>
   </section>
 
   <section id="report" class="panel" role="tabpanel">

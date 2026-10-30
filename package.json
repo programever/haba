@@ -2,7 +2,7 @@
   "name": "haba",
   "version": "1.0.0",
   "private": true,
-  "description": "Haba: two-tab habit page: buttons and report. Records live in Firestore.",
+  "description": "Haba: three-tab habit page: buttons, calendar and report. Records live in Firestore.",
   "type": "module",
   "scripts": {
     "check": "tsc --noEmit",
