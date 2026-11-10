@@ -19,7 +19,7 @@ Firebase console (Firestore Database, Rules tab). The same rules also cover
 Trani (https://github.com/programever/trani, the list `trani`) and Cismo
 (https://github.com/programever/cismo, under `cismo/`) in the same database. So
 **always paste the whole block**, never only Haba's part, or the other apps stop
-working. The same block is in the READMEs of all three apps; keep them the same:
+working. The same block is in the READMEs of all four apps; keep them the same:
 
 ```
 rules_version = '2';
@@ -60,9 +60,65 @@ service cloud.firestore {
         && request.resource.data.n is int;
       allow update: if false;
     }
+    match /paco/{key} {
+      allow read: if key.size() >= 20;
+      allow create, update: if key.size() >= 20
+        && request.resource.data.keys().hasOnly(['race', 'state', 'start', 'km', 'lat', 'lon', 'acc', 'fix', 'got', 'at'])
+        && request.resource.data.race is string
+        && request.resource.data.race.size() <= 80
+        && request.resource.data.state in ['running', 'ended']
+        && request.resource.data.start is int
+        && request.resource.data.km is number
+        && request.resource.data.got is string
+        && request.resource.data.got.size() <= 40
+        && request.resource.data.at == request.time;
+      allow delete: if key.size() >= 20;
+    }
+    match /paco/{key}/taps/{id} {
+      allow read: if key.size() >= 20;
+      allow create: if key.size() >= 20
+        && request.resource.data.keys().hasOnly(['kind', 'items', 'msg', 't', 'sent'])
+        && request.resource.data.kind in ['ok', 'tired', 'resting', 'injured', 'need', 'quit', 'sos', 'seen']
+        && request.resource.data.items is list
+        && request.resource.data.items.size() <= 12
+        && request.resource.data.items.hasOnly(['knee', 'ankle', 'foot', 'cramp', 'stomach', 'other', 'water', 'food', 'gel', 'salt', 'medicine', 'socks', 'warm clothes', 'headlamp', 'power bank'])
+        && request.resource.data.msg is string
+        && request.resource.data.msg.size() <= 40
+        && request.resource.data.t is int
+        && request.resource.data.sent == request.time;
+      allow update: if false;
+      allow delete: if key.size() >= 20;
+    }
+    match /paco/{key}/chat/{id} {
+      allow read: if key.size() >= 20;
+      allow create: if key.size() >= 20
+        && request.resource.data.keys().hasOnly(['from', 'text', 't', 'at'])
+        && request.resource.data.from in ['runner', 'crew']
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0
+        && request.resource.data.text.size() <= 500
+        && request.resource.data.t is int
+        && request.resource.data.at == request.time;
+      allow update: if false;
+      allow delete: if key.size() >= 20;
+    }
+    match /paco/{key}/msgs/{id} {
+      allow read: if key.size() >= 20;
+      allow create: if key.size() >= 20
+        && request.resource.data.keys().hasOnly(['text', 'at'])
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0
+        && request.resource.data.text.size() <= 200
+        && request.resource.data.at == request.time;
+      allow update: if false;
+      allow delete: if key.size() >= 20;
+    }
   }
 }
 ```
+
+Paco (https://github.com/programever/paco, under `paco/`) uses the same database, so
+its parts are in the block too. Paco's README explains them.
 
 In plain words: anyone can read, anyone can add a record that has the right
 shape, anyone can delete, nobody can change a record after it is written.
